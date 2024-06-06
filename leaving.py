@@ -15,10 +15,9 @@ def connect_to_db(host_name, user_name, user_password, db_name):
             passwd=user_password,
             database=db_name
         )
-        print("Connection to mysql db successful")
+        print("Connection to MySQL DB successful")
     except Error as e:
         print(f"The Error '{e}' occurred")
-
     return connection
 
 def create_db(connection, query):
@@ -59,44 +58,44 @@ def leave_time(connection, name):
     execute_query(connection, query)
 
 def detect_person_in_video(connection):
-    video = cv2.VideoCapture(0)
+    video = cv2.VideoCapture(0)  # Открыть видеопоток с веб-камеры
     video.set(cv2.CAP_PROP_FPS, 60)
     person_recognized = False
 
     while not person_recognized:
-        ret, image = video.read()
-        cv2.imshow("detect_person_in_video is running", image)
+        ret, image = video.read()  # Захват кадра из видеопотока
+        cv2.imshow("detect_person_in_video is running", image)  # Показать текущий кадр
         k = cv2.waitKey(20)
 
-        locations = face_recognition.face_locations(image)
-        encodings = face_recognition.face_encodings(image, locations)
+        locations = face_recognition.face_locations(image)  # Найти все лица в текущем кадре
+        encodings = face_recognition.face_encodings(image, locations)  # Получить кодировки лиц
 
-        for filename in os.listdir('dataset'):
+        for filename in os.listdir('dataset'):  # Перебрать все файлы в папке 'dataset'
             for face_encoding, face_location in zip(encodings, locations):
-                data = pickle.loads(open(f"dataset/{filename}", "rb").read())
-                result = face_recognition.compare_faces(data["encodings"], face_encoding)
+                data = pickle.loads(open(f"dataset/{filename}", "rb").read())  # Загрузить данные из файла
+                result = face_recognition.compare_faces(data["encodings"], face_encoding)  # Сравнить лица
                 match = None
 
                 if True in result:
                     match = data["name"]
                     print(f"{match}, have a good day!")
-                    update_leave_time(connection, match, datetime.now())
-                    leave_time(connection, match)
+                    update_leave_time(connection, match, datetime.now())  # Обновить время ухода
+                    leave_time(connection, match)  # Записать время ухода
                     person_recognized = True
                     break
             if person_recognized:
                 break
 
-        if k == ord("q"):
-            print(f"Q pressed, closing the window")
+        if k == ord("q"):  # Завершить цикл, если нажата клавиша 'q'
+            print("Q pressed, closing the window")
             break
 
     video.release()
     cv2.destroyAllWindows()
 
 def main():
-    connection = connect_to_db("localhost", "root", "", "db")
-    detect_person_in_video(connection)
+    connection = connect_to_db("localhost", "root", "", "db")  # Подключиться к базе данных
+    detect_person_in_video(connection)  # Запустить функцию распознавания лиц
     # Uncomment the following lines if you need to create the database and tables initially
     # create_db_query = "CREATE DATABASE db"
     # create_db(connection, create_db_query)
@@ -105,6 +104,7 @@ def main():
     #   id INT AUTO_INCREMENT,
     #   name TEXT NOT NULL,
     #   visit_time DATETIME,
+    #   leave_time DATETIME,
     #   PRIMARY KEY (id)
     # ) ENGINE = InnoDB
     # """
